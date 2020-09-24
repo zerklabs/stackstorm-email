@@ -130,10 +130,22 @@ class IMAPSensor(PollingSensor):
 
     def _process_message(self, uid, mailbox, mailbox_metadata,
                          download_attachments=DEFAULT_DOWNLOAD_ATTACHMENTS):
-        message = mailbox.mail(uid, include_raw=True)
+        self._logger.debug('[IMAPSensor]: Processing message with uid {0}'.format(uid))
+
+        # if we receive the TypeError "can't concat int into bytes", cast uid
+        try:
+            message = mailbox.mail(uid, include_raw=True)
+        except TypeError:
+            message = mailbox.mail(str(uid), include_raw=True)
+
         mime_msg = mime.from_string(message.raw)
 
-        body = message.body
+        try:
+            body = message.body
+        except Exception as e:
+            body = ''
+            self._logger.debug('[IMAPSensor]: exception raised from easyimap {0}'.format(str(e)))
+
         sent_from = message.from_addr
         sent_to = message.to
         subject = message.title
