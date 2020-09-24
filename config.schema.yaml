@@ -75,6 +75,11 @@ imap_accounts:
         description: "Set to False to disable secure protocol. Default value is True."
         type: "boolean"
         default: true
+      use_tls:
+        description: "Set to False to disable use of TLS. Default value is True."
+        type: "boolean"
+        default: true
+        required: false
       download_attachments:
         description: "Set to True to download attachments to datastore. Default False"
         type: "boolean"
@@ -84,6 +89,26 @@ imap_accounts:
         type: "string"
         required: false
         default: "INBOX"
+smtp_sensor:
+  description: "SMTP Sensor"
+  type: "object"
+  required: false
+  properties:
+    enabled:
+      description: "Set to False to disable SMTP sensor. Default is False"
+      type: "boolean"
+      required: false
+      default: false
+    bind_addr:
+      description: "Set to IP address to listen on. Default is localhost"
+      type: "string"
+      required: false
+      default: "127.0.0.1"
+    bind_port:
+      description: "Set port to listen on. Default is 1025"
+      type: "integer"
+      required: false
+      default: 1025
 max_attachment_size:
   description: "Maxium size of downloaded attachment in bytes (default 1024)"
   type: "integer"

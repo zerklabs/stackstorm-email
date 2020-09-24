@@ -1,9 +1,12 @@
 import hashlib
 import base64
+import imaplib
 
 import six
 import eventlet
 import easyimap
+from ssl import Purpose
+from ssl import ssl
 from flanker import mime
 
 from st2reactor.sensor.base import PollingSensor
@@ -79,11 +82,11 @@ class IMAPSensor(PollingSensor):
         for config in accounts:
             mailbox = config.get('name', None)
             server = config.get('server', 'localhost')
-            port = config.get('port', 143)
+            port = config.get('port', 993)
             user = config.get('username', None)
             password = config.get('password', None)
             folder = config.get('folder', 'INBOX')
-            ssl = config.get('secure', False)
+            use_tls = config.get('use_tls', True)
             download_attachments = config.get('download_attachments', DEFAULT_DOWNLOAD_ATTACHMENTS)
 
             if not user or not password:
@@ -97,8 +100,10 @@ class IMAPSensor(PollingSensor):
                 continue
 
             try:
-                connection = easyimap.connect(server, user, password,
-                                              folder, ssl=ssl, port=port)
+                if use_tls:
+                    connection = imaplib.IMAP4_SSL(host=server, port=port, keyfile=None, certfile=None, ssl_context=ssl.create_default_context(Purpose.SERVER_AUTH))
+                else:
+                    connection = imaplib.IMAP4(host=server, port=port)
             except Exception as e:
                 message = 'Failed to connect to mailbox "%s": %s' % (mailbox, str(e))
                 raise Exception(message)
@@ -111,7 +116,7 @@ class IMAPSensor(PollingSensor):
                     'port': port,
                     'user': user,
                     'folder': folder,
-                    'ssl': ssl
+                    'use_tls': ssl
                 }
             }
             self._accounts[mailbox] = item
