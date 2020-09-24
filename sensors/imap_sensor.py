@@ -117,8 +117,7 @@ class IMAPSensor(PollingSensor):
                 raise Exception(message)
 
             typ, dat = connection.select(folder)
-            if typ != 'EXISTS':
-                raise Exception('Failed to open folder "{0}" on server "{1}:{2}"'.format(folder, server, port))
+            self._logger.debug("[IMAPSensor]: IMAP select response: {0}".format(typ))
             item = {
                 'connection': connection,
                 'download_attachments': download_attachments,
