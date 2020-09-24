@@ -59,7 +59,9 @@ class IMAPSensor(PollingSensor):
             self._poll_for_unread_messages(name=name, mailbox=mailbox,
                                            download_attachments=download_attachments,
                                            mailbox_metadata=mailbox_metadata)
-            mailbox.quit()
+            
+            mailbox.close()
+            mailbox.logout()
 
     def cleanup(self):
         self._logger.debug('[IMAPSensor]: entering cleanup')
@@ -101,13 +103,22 @@ class IMAPSensor(PollingSensor):
 
             try:
                 if use_tls:
-                    connection = imaplib.IMAP4_SSL(host=server, port=port, keyfile=None, certfile=None, ssl_context=ssl.create_default_context(Purpose.SERVER_AUTH))
+                    connection = imaplib.IMAP4_SSL(host=server, port=port, ssl_context=ssl.create_default_context(Purpose.SERVER_AUTH))
                 else:
                     connection = imaplib.IMAP4(host=server, port=port)
             except Exception as e:
-                message = 'Failed to connect to mailbox "%s": %s' % (mailbox, str(e))
+                message = 'Failed to establish connection to server "%s:%d": %s' % (server, port, str(e))
                 raise Exception(message)
 
+            try:
+                connection.login(user, password)
+            except Exception as e:
+                message = 'Failed to login to server "%s:%d" as %s: %s' % (server, port, user, str(e))
+                raise Exception(message)
+
+            typ, dat = connection.select(folder)
+            if typ != 'EXISTS':
+                raise Exception('Failed to open folder "%s" on server "%s:%d": %s' % (folder, server, port))
             item = {
                 'connection': connection,
                 'download_attachments': download_attachments,
@@ -116,7 +127,7 @@ class IMAPSensor(PollingSensor):
                     'port': port,
                     'user': user,
                     'folder': folder,
-                    'use_tls': ssl
+                    'use_tls': use_tls
                 }
             }
             self._accounts[mailbox] = item
@@ -125,13 +136,30 @@ class IMAPSensor(PollingSensor):
                                   download_attachments=False):
         self._logger.debug('[IMAPSensor]: polling mailbox {0}'.format(name))
 
-        messages = mailbox.unseen()
+        status, response = mailbox.search(None, '(UNSEEN)')
+        unread_msg_nums = response[0].split()
 
-        self._logger.debug('[IMAPSensor]: Processing {0} new messages'.format(len(messages)))
-        for message in messages:
-            self._process_message(uid=message.uid, mailbox=mailbox,
-                                  download_attachments=download_attachments,
-                                  mailbox_metadata=mailbox_metadata)
+        # Print the count of all unread messages
+        self._logger.info('[IMAPSensor]: Found {0} unread messages'.format(len(unread_msg_nums)))
+
+        da = []
+        for e_id in unread_msg_nums:
+            _, response = mailbox.fetch(e_id, '(UID BODY[TEXT])')
+            da.append(response[0][1])
+        self._logger.debug('[IMAPSensor]: Mailbox response {0}'.format(da))
+
+        # Mark them as seen
+        for e_id in unread_msg_nums:
+            mailbox.store(e_id, '+FLAGS', '\Seen')
+
+
+        # messages = mailbox.unseen()
+
+        # self._logger.debug('[IMAPSensor]: Processing {0} new messages'.format(len(messages)))
+        # for message in messages:
+        #     self._process_message(uid=message.uid, mailbox=mailbox,
+        #                           download_attachments=download_attachments,
+        #                           mailbox_metadata=mailbox_metadata)
 
     def _process_message(self, uid, mailbox, mailbox_metadata,
                          download_attachments=DEFAULT_DOWNLOAD_ATTACHMENTS):
