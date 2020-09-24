@@ -113,12 +113,12 @@ class IMAPSensor(PollingSensor):
             try:
                 connection.login(user, password)
             except Exception as e:
-                message = 'Failed to login to server "%s:%d" as %s: %s' % (server, port, user, str(e))
+                message = 'Failed to login to server "{0}:{1}" as {2}: {3}'.format(server, port, user, str(e))
                 raise Exception(message)
 
             typ, dat = connection.select(folder)
             if typ != 'EXISTS':
-                raise Exception('Failed to open folder "%s" on server "%s:%d": %s' % (folder, server, port))
+                raise Exception('Failed to open folder "{0}" on server "{1}:{2}"'.format(folder, server, port))
             item = {
                 'connection': connection,
                 'download_attachments': download_attachments,
