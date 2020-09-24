@@ -5,8 +5,8 @@ import imaplib
 import six
 import eventlet
 import easyimap
+import ssl
 from ssl import Purpose
-from ssl import ssl
 from flanker import mime
 
 from st2reactor.sensor.base import PollingSensor
