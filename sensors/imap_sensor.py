@@ -185,6 +185,15 @@ class IMAPSensor(PollingSensor):
 
     def _process_message_std(self, message, mailbox, mailbox_metadata,
                              download_attachments=DEFAULT_DOWNLOAD_ATTACHMENTS):
+        try:
+            body = message.get_body()
+        except Exception as e:
+            exmessage = 'Failed to get message body {0}'.format(str(e))
+            body = ''
+            self._logger.error('[IMAPSensor] failed to get body of message: {0}'.format(exmessage))
+
+        self._logger.debug('[IMAPSensor] message body: {0}'.format(body))
+
         for part in message.walk():
             self._logger.debug('[IMAPSensor] walking message sub-part type: {0}'.format(type(part)))
             self._logger.debug('[IMAPSensor] walking message sub-part content type: {0}'.format(part.get_content_type()))
@@ -192,13 +201,13 @@ class IMAPSensor(PollingSensor):
                 self._logger.debug('[IMAPSensor] sub-part: {0}'.format(part))
                 self._logger.debug('[IMAPSensor] sub-part vars: {0}'.format(vars(part)))
                 self._logger.debug('[IMAPSensor] sub-part dir: {0}'.format(dir(part)))
-                # body = part.get_body()
-                # self._logger.debug('[IMAPSensor] sub-part body: {0}'.format(body))
-                # self._logger.debug('[IMAPSensor] sub-part body type: {0}'.format(type(body)))
-                # self._logger.debug('[IMAPSensor] sub-part body vars: {0}'.format(vars(body)))
-                # self._logger.debug('[IMAPSensor] sub-part body dir: {0}'.format(dir(body)))
+                payload = part.get_payload()
+                self._logger.debug('[IMAPSensor] sub-part payload: {0}'.format(payload))
+                self._logger.debug('[IMAPSensor] sub-part payload type: {0}'.format(type(payload)))
+                self._logger.debug('[IMAPSensor] sub-part payload vars: {0}'.format(vars(payload)))
+                self._logger.debug('[IMAPSensor] sub-part payload dir: {0}'.format(dir(payload)))
             except Exception as e:
-                exmessage = 'Failed to get part body {0}'.format(str(e))
+                exmessage = 'Failed to get part payload {0}'.format(str(e))
                 raise Exception(exmessage)
 
     def _process_message(self, uid, mailbox, mailbox_metadata,
