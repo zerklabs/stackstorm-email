@@ -145,8 +145,14 @@ class IMAPSensor(PollingSensor):
         for e_id in unread_msg_nums:
             _, response = mailbox.fetch(e_id, '(UID BODY[TEXT])')
             da.append(response[0][1])
-            self._logger.debug('[IMAPSensor]: Mailbox response vars {0}'.format(vars(response)))
-            self._logger.debug('[IMAPSensor]: Mailbox response dir {0}'.format(dir(response)))
+            try:
+                self._logger.debug('[IMAPSensor]: Mailbox response dir {0}'.format(dir(response)))
+            except:
+                self._logger.debug('[IMAPSensor]: Mailbox response {0}'.format(response))
+            try:
+                self._logger.debug('[IMAPSensor]: Mailbox response vars {0}'.format(vars(response)))
+            except:
+                self._logger.debug('[IMAPSensor]: Mailbox response debug vars failed'
 
         # self._logger.debug('[IMAPSensor]: Mailbox response {0}'.format(da))
 
