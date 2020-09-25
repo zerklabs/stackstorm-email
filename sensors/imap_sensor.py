@@ -187,6 +187,11 @@ class IMAPSensor(PollingSensor):
                              download_attachments=DEFAULT_DOWNLOAD_ATTACHMENTS):
         for part in message.walk():
             self._logger.debug('[IMAPSensor] walking message sub-part content type: {0}'.format(part.get_content_type()))
+            body = part.get_body()
+            self._logger.debug('[IMAPSensor] sub-part body: {0}'.format(body))
+            self._logger.debug('[IMAPSensor] sub-part body type: {0}'.format(type(body)))
+            self._logger.debug('[IMAPSensor] sub-part body vars: {0}'.format(vars(body)))
+            self._logger.debug('[IMAPSensor] sub-part body dir: {0}'.format(dir(body)))
 
     def _process_message(self, uid, mailbox, mailbox_metadata,
                          download_attachments=DEFAULT_DOWNLOAD_ATTACHMENTS):
