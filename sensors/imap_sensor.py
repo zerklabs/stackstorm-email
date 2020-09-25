@@ -1,6 +1,7 @@
 import hashlib
 import base64
 import imaplib
+import email
 
 import six
 import eventlet
@@ -162,9 +163,21 @@ class IMAPSensor(PollingSensor):
         # self._logger.debug('[IMAPSensor]: Mailbox response {0}'.format(da))
 
         # Mark them as seen
+        for message in da:
+            try:
+                self._logger.debug('[IMAPSensor]: Raw message {0}'.format(message))
+                msg = email.message_from_bytes(message)
+                self._logger.debug('[IMAPSensor]: Parsed message type {0}'.format(type(msg)))
+                self._logger.debug('[IMAPSensor]: Parsed message dir {0}'.format(dir(msg)))
+                self._logger.debug('[IMAPSensor]: Parsed message vars {0}'.format(vars(msg)))
+                self._logger.debug('[IMAPSensor]: Parsed message {0}'.format(msg))
+                # self._process_message_std(uid=e_id, mailbox=mailbox, download_attachments=download_attachments, mailbox_metadata=mailbox_metadata)
+            except Exception as e:
+                exmessage = 'Failed to read message {0}'.format(str(e))
+                self._logger.error('[IMAPSensor] {0}'.format(exmessage))
+
         for e_id in unread_msg_nums:
             try:
-                self._process_message_std(uid=e_id, mailbox=mailbox, download_attachments=download_attachments, mailbox_metadata=mailbox_metadata)
                 mailbox.store(e_id, '+FLAGS', '\Seen')
             except Exception as e:
                 message = 'Failed to process message {0}: {1}'.format(e_id, str(e))
