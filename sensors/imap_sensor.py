@@ -145,43 +145,34 @@ class IMAPSensor(PollingSensor):
         da = []
         for e_id in unread_msg_nums:
             _, response = mailbox.fetch(e_id, '(UID BODY[TEXT])')
-            da.append(response[0][1])
-            try:
-                self._logger.debug('[IMAPSensor]: Mailbox response dir [0] {0}'.format(dir(response[0])))
-                self._logger.debug('[IMAPSensor]: Mailbox response dir [0][1] {0}'.format(dir(response[0][1])))
-            except Exception as e:
-                self._logger.debug('[IMAPSensor]: {0}'.format(str(e)))
-            try:
-                self._logger.debug('[IMAPSensor]: Mailbox response vars [0] {0}'.format(vars(response[0])))
-                self._logger.debug('[IMAPSensor]: Mailbox response vars [0][1] {0}'.format(vars(response[0])))
-            except Exception as e:
-                self._logger.debug('[IMAPSensor]: {0}'.format(str(e)))
+            item = {
+                'uid': e_id,
+                'raw': response[0][1]
+            }
 
-            self._logger.debug('[IMAPSensor]: Mailbox response type [0] {0}'.format(type(response[0])))
-            self._logger.debug('[IMAPSensor]: Mailbox response type [0][1] {0}'.format(type(response[0][1])))
+            da.append(item)
 
-        # self._logger.debug('[IMAPSensor]: Mailbox response {0}'.format(da))
-
-        # Mark them as seen
         for message in da:
             try:
-                self._logger.debug('[IMAPSensor]: Raw message {0}'.format(message))
-                msg = email.message_from_bytes(message)
+                self._logger.debug('[IMAPSensor]: Raw message {0}'.format(message['raw']))
+                msg = email.message_from_bytes(message['raw'])
                 self._logger.debug('[IMAPSensor]: Parsed message type {0}'.format(type(msg)))
                 self._logger.debug('[IMAPSensor]: Parsed message dir {0}'.format(dir(msg)))
                 self._logger.debug('[IMAPSensor]: Parsed message vars {0}'.format(vars(msg)))
                 self._logger.debug('[IMAPSensor]: Parsed message {0}'.format(msg))
-                # self._process_message_std(uid=e_id, mailbox=mailbox, download_attachments=download_attachments, mailbox_metadata=mailbox_metadata)
+                self._process_message_std(message=msg, mailbox=mailbox, download_attachments=download_attachments, mailbox_metadata=mailbox_metadata)
+                mailbox.store(message['uid'], '+FLAGS', '\Seen')
             except Exception as e:
                 exmessage = 'Failed to read message {0}'.format(str(e))
                 self._logger.error('[IMAPSensor] {0}'.format(exmessage))
 
-        for e_id in unread_msg_nums:
-            try:
-                mailbox.store(e_id, '+FLAGS', '\Seen')
-            except Exception as e:
-                message = 'Failed to process message {0}: {1}'.format(e_id, str(e))
-                self._logger.error('[IMAPSensor] {0}'.format(message))
+        # Mark them as seen
+        # for e_id in unread_msg_nums:
+        #     try:
+        #         mailbox.store(e_id, '+FLAGS', '\Seen')
+        #     except Exception as e:
+        #         message = 'Failed to process message {0}: {1}'.format(e_id, str(e))
+        #         self._logger.error('[IMAPSensor] {0}'.format(message))
 
 
         # messages = mailbox.unseen()
@@ -192,9 +183,10 @@ class IMAPSensor(PollingSensor):
         #                           download_attachments=download_attachments,
         #                           mailbox_metadata=mailbox_metadata)
 
-    def _process_message_std(self, uid, mailbox, mailbox_metadata,
+    def _process_message_std(self, message, mailbox, mailbox_metadata,
                              download_attachments=DEFAULT_DOWNLOAD_ATTACHMENTS):
-        self._logger.debug('[IMAPSensor]: Processing message with uid {0} using std library'.format(uid))
+        for part in message.walk():
+            self._logger.debug('[IMAPSensor] walking message sub-part content type: {0}'.format(part.get_content_type()))
 
     def _process_message(self, uid, mailbox, mailbox_metadata,
                          download_attachments=DEFAULT_DOWNLOAD_ATTACHMENTS):
