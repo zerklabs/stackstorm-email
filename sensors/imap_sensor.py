@@ -146,11 +146,13 @@ class IMAPSensor(PollingSensor):
             _, response = mailbox.fetch(e_id, '(UID BODY[TEXT])')
             da.append(response[0][1])
             try:
-                self._logger.debug('[IMAPSensor]: Mailbox response dir {0}'.format(dir(response)))
+                self._logger.debug('[IMAPSensor]: Mailbox response dir [0] {0}'.format(dir(response[0])))
+                self._logger.debug('[IMAPSensor]: Mailbox response dir [0][1] {0}'.format(dir(response[0][1])))
             except Exception as e:
                 self._logger.debug('[IMAPSensor]: {0}'.format(str(e)))
             try:
-                self._logger.debug('[IMAPSensor]: Mailbox response vars {0}'.format(vars(response)))
+                self._logger.debug('[IMAPSensor]: Mailbox response vars [0] {0}'.format(vars(response[0])))
+                self._logger.debug('[IMAPSensor]: Mailbox response vars [0][1] {0}'.format(vars(response[0])))
             except Exception as e:
                 self._logger.debug('[IMAPSensor]: {0}'.format(str(e)))
 
