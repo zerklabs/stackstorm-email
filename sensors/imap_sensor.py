@@ -186,12 +186,17 @@ class IMAPSensor(PollingSensor):
     def _process_message_std(self, message, mailbox, mailbox_metadata,
                              download_attachments=DEFAULT_DOWNLOAD_ATTACHMENTS):
         for part in message.walk():
+            self._logger.debug('[IMAPSensor] walking message sub-part type: {0}'.format(type(part)))
             self._logger.debug('[IMAPSensor] walking message sub-part content type: {0}'.format(part.get_content_type()))
-            body = part.get_body()
-            self._logger.debug('[IMAPSensor] sub-part body: {0}'.format(body))
-            self._logger.debug('[IMAPSensor] sub-part body type: {0}'.format(type(body)))
-            self._logger.debug('[IMAPSensor] sub-part body vars: {0}'.format(vars(body)))
-            self._logger.debug('[IMAPSensor] sub-part body dir: {0}'.format(dir(body)))
+            try:
+                body = part.get_body()
+                self._logger.debug('[IMAPSensor] sub-part body: {0}'.format(body))
+                self._logger.debug('[IMAPSensor] sub-part body type: {0}'.format(type(body)))
+                self._logger.debug('[IMAPSensor] sub-part body vars: {0}'.format(vars(body)))
+                self._logger.debug('[IMAPSensor] sub-part body dir: {0}'.format(dir(body)))
+            except Exception as e:
+                exmessage = 'Failed to get part body {0}'.format(str(e))
+                raise Exception(exmessage)
 
     def _process_message(self, uid, mailbox, mailbox_metadata,
                          download_attachments=DEFAULT_DOWNLOAD_ATTACHMENTS):
