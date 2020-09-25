@@ -2,6 +2,7 @@ import hashlib
 import base64
 import imaplib
 import email
+from email.message import EmailMessage
 
 import six
 import eventlet
@@ -155,7 +156,7 @@ class IMAPSensor(PollingSensor):
         for message in da:
             try:
                 self._logger.debug('[IMAPSensor]: Raw message {0}'.format(message['raw']))
-                msg = email.message_from_bytes(message['raw'])
+                msg = email.message_from_bytes(message['raw'], _class=EmailMessage)
                 self._logger.debug('[IMAPSensor]: Parsed message type {0}'.format(type(msg)))
                 self._logger.debug('[IMAPSensor]: Parsed message dir {0}'.format(dir(msg)))
                 self._logger.debug('[IMAPSensor]: Parsed message vars {0}'.format(vars(msg)))
@@ -197,6 +198,9 @@ class IMAPSensor(PollingSensor):
         for part in message.walk():
             self._logger.debug('[IMAPSensor] walking message sub-part type: {0}'.format(type(part)))
             self._logger.debug('[IMAPSensor] walking message sub-part content type: {0}'.format(part.get_content_type()))
+            if part.is_attachment():
+                self._logger.debug('[IMAPSensor] sub-part is an attachment')
+
             try:
                 self._logger.debug('[IMAPSensor] sub-part: {0}'.format(part))
                 self._logger.debug('[IMAPSensor] sub-part vars: {0}'.format(vars(part)))
