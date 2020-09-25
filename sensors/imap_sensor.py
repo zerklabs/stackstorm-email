@@ -156,6 +156,9 @@ class IMAPSensor(PollingSensor):
             except Exception as e:
                 self._logger.debug('[IMAPSensor]: {0}'.format(str(e)))
 
+            self._logger.debug('[IMAPSensor]: Mailbox response type [0] {0}'.format(type(response[0])))
+            self._logger.debug('[IMAPSensor]: Mailbox response type [0][1] {0}'.format(type(response[0][1])))
+
         # self._logger.debug('[IMAPSensor]: Mailbox response {0}'.format(da))
 
         # Mark them as seen
