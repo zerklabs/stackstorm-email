@@ -147,12 +147,12 @@ class IMAPSensor(PollingSensor):
             da.append(response[0][1])
             try:
                 self._logger.debug('[IMAPSensor]: Mailbox response dir {0}'.format(dir(response)))
-            except:
-                self._logger.debug('[IMAPSensor]: Mailbox response {0}'.format(response))
+            except Exception as e:
+                self._logger.debug('[IMAPSensor]: {0}'.format(str(e)))
             try:
                 self._logger.debug('[IMAPSensor]: Mailbox response vars {0}'.format(vars(response)))
-            except:
-                self._logger.debug('[IMAPSensor]: Mailbox response debug vars failed'
+            except Exception as e:
+                self._logger.debug('[IMAPSensor]: {0}'.format(str(e)))
 
         # self._logger.debug('[IMAPSensor]: Mailbox response {0}'.format(da))
 
