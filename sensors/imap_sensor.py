@@ -145,11 +145,19 @@ class IMAPSensor(PollingSensor):
         for e_id in unread_msg_nums:
             _, response = mailbox.fetch(e_id, '(UID BODY[TEXT])')
             da.append(response[0][1])
-        self._logger.debug('[IMAPSensor]: Mailbox response {0}'.format(da))
+            self._logger.debug('[IMAPSensor]: Mailbox response vars {0}'.format(vars(response)))
+            self._logger.debug('[IMAPSensor]: Mailbox response dir {0}'.format(dir(response)))
+
+        # self._logger.debug('[IMAPSensor]: Mailbox response {0}'.format(da))
 
         # Mark them as seen
         for e_id in unread_msg_nums:
-            mailbox.store(e_id, '+FLAGS', '\Seen')
+            try:
+                self._process_message_std(uid=e_id, mailbox=mailbox, download_attachments=download_attachments, mailbox_metadata=mailbox_metadata)
+                mailbox.store(e_id, '+FLAGS', '\Seen')
+            except Exception as e:
+                message = 'Failed to process message {0}: {1}'.format(e_id, str(e))
+                self._logger.error('[IMAPSensor] {0}'.format(message))
 
 
         # messages = mailbox.unseen()
@@ -159,6 +167,10 @@ class IMAPSensor(PollingSensor):
         #     self._process_message(uid=message.uid, mailbox=mailbox,
         #                           download_attachments=download_attachments,
         #                           mailbox_metadata=mailbox_metadata)
+
+    def _process_message_std(self, uid, mailbox, mailbox_metadata,
+                             download_attachments=DEFAULT_DOWNLOAD_ATTACHMENTS):
+        self._logger.debug('[IMAPSensor]: Processing message with uid {0} using std library'.format(uid))
 
     def _process_message(self, uid, mailbox, mailbox_metadata,
                          download_attachments=DEFAULT_DOWNLOAD_ATTACHMENTS):
